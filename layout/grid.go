@@ -111,14 +111,15 @@ func (g Grid) JointCellRenderFunc(i1, j1, i2, j2 int) (RendererFunc, error) {
 	}, nil
 }
 
-var g = Grid{}
-var _ iter.Seq2[struct{ i, j int }, RendererFunc] = g.ForEachCellRenderFunc
+type CellIndex struct{ I, J int }
 
-func (g Grid) ForEachCellRenderFunc(f func(pos struct{ i, j int }, renderFunc RendererFunc) bool) {
+var _ iter.Seq2[CellIndex, RendererFunc] = Grid{}.ForEachCellRenderFunc
+
+func (g Grid) ForEachCellRenderFunc(f func(pos CellIndex, renderFunc RendererFunc) bool) {
 	for i := 0; i < g.Rows; i++ {
 		for j := 0; j < g.Cols; j++ {
 			renderFunc, _ := g.CellRenderFunc(i, j)
-			if !f(struct{ i, j int }{i, j}, renderFunc) {
+			if !f(CellIndex{i, j}, renderFunc) {
 				return
 			}
 		}
