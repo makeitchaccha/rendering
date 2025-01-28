@@ -2,10 +2,10 @@ fmt:
 	go fmt ./...
 .PHONY: fmt
 
-lint:
+lint: fmt
 	staticcheck ./...
 .PHONY: lint
 
-vet:
+vet: fmt
 	go vet ./...
 .PHONY: vet
