@@ -20,9 +20,14 @@ type Grid struct {
 	cellYs, cellXs []float64 // cellXs has col+1 elements, cellYs has row+1 elements.
 }
 
-type Cell struct {
-	X, Y, W, H float64
+type Cell Rectangle
+
+type CellIndex struct {
+	Row int
+	Col int
 }
+
+var _ iter.Seq2[CellIndex, RendererFunc] = Grid{}.ForEachCellRenderFunc
 
 func NewGrid(x, y float64, cellWidths, cellHeights []float64) Grid {
 	cellXs := make([]float64, len(cellWidths)+1)
@@ -45,19 +50,24 @@ func NewGrid(x, y float64, cellWidths, cellHeights []float64) Grid {
 	}
 }
 
-func (g Grid) IsInBounds(i, j int) bool {
-	return 0 <= i && i < g.Rows && 0 <= j && j < g.Cols
+func (g Grid) Bounds() Rectangle {
+	return Rectangle{
+		Min: Point{X: g.cellXs[0], Y: g.cellYs[0]},
+		Max: Point{X: g.cellXs[g.Cols], Y: g.cellYs[g.Rows]},
+	}
 }
 
-func (g Grid) Cell(i, j int) (Cell, error) {
-	if !g.IsInBounds(i, j) {
-		return Cell{}, ErrOutOfBounds
+func (g Grid) IsInBounds(row, col int) bool {
+	return 0 <= row && row < g.Rows && 0 <= col && col < g.Cols
+}
+
+func (g Grid) Cell(row, col int) (Rectangle, error) {
+	if !g.IsInBounds(row, col) {
+		return Rectangle{}, ErrOutOfBounds
 	}
-	return Cell{
-		X: g.cellXs[j],
-		Y: g.cellYs[i],
-		W: g.cellXs[j+1] - g.cellXs[j],
-		H: g.cellYs[i+1] - g.cellYs[i],
+	return Rectangle{
+		Min: Point{X: g.cellXs[col], Y: g.cellYs[row]},
+		Max: Point{X: g.cellXs[col+1], Y: g.cellYs[row+1]},
 	}, nil
 }
 
@@ -75,45 +85,41 @@ func (g Grid) Subgrid(i1, j1, i2, j2 int) (Grid, error) {
 	}, nil
 }
 
-func (g Grid) RowAsSubgrid(i int) (Grid, error) {
-	return g.Subgrid(i, 0, i, g.Cols-1)
+func (g Grid) RowAsSubgrid(row int) (Grid, error) {
+	return g.Subgrid(row, 0, row, g.Cols-1)
 }
 
-func (g Grid) ColAsSubgrid(j int) (Grid, error) {
-	return g.Subgrid(0, j, g.Rows-1, j)
+func (g Grid) ColAsSubgrid(col int) (Grid, error) {
+	return g.Subgrid(0, col, g.Rows-1, col)
 }
 
-func (g Grid) CellRenderFunc(i, j int) (RendererFunc, error) {
-	if !g.IsInBounds(i, j) {
+func (g Grid) CellRenderFunc(row, col int) (RendererFunc, error) {
+	if !g.IsInBounds(row, col) {
 		return nil, ErrOutOfBounds
 	}
 
 	return func(dc *gg.Context, r Renderer) error {
-		x := g.cellXs[j]
-		y := g.cellYs[i]
-		w := g.cellXs[j+1] - x
-		h := g.cellYs[i+1] - y
+		x := g.cellXs[col]
+		y := g.cellYs[row]
+		w := g.cellXs[col+1] - x
+		h := g.cellYs[row+1] - y
 		return r(dc, x, y, w, h)
 	}, nil
 }
 
-func (g Grid) JointCellRenderFunc(i1, j1, i2, j2 int) (RendererFunc, error) {
-	if !g.IsInBounds(i1, j1) || !g.IsInBounds(i2, j2) {
+func (g Grid) JointCellRenderFunc(row1, col1, row2, col2 int) (RendererFunc, error) {
+	if !g.IsInBounds(row1, col1) || !g.IsInBounds(row2, col2) {
 		return nil, ErrOutOfBounds
 	}
 
 	return func(dc *gg.Context, r Renderer) error {
-		x := g.cellXs[j1]
-		y := g.cellYs[i1]
-		w := g.cellXs[j2+1] - x
-		h := g.cellYs[i2+1] - y
+		x := g.cellXs[col1]
+		y := g.cellYs[row1]
+		w := g.cellXs[col2+1] - x
+		h := g.cellYs[row2+1] - y
 		return r(dc, x, y, w, h)
 	}, nil
 }
-
-type CellIndex struct{ I, J int }
-
-var _ iter.Seq2[CellIndex, RendererFunc] = Grid{}.ForEachCellRenderFunc
 
 func (g Grid) ForEachCellRenderFunc(f func(pos CellIndex, renderFunc RendererFunc) bool) {
 	for i := 0; i < g.Rows; i++ {

@@ -46,8 +46,8 @@ func (t Timeline) RenderInGrid(dc *gg.Context, grid layout.Grid) error {
 		if err != nil {
 			return err
 		}
-		hFilling := t.fillingFactor * cell.H
-		e.Render(dc, cell.X, cell.Y+(cell.H-hFilling)/2, cell.W, hFilling)
+		hFilling := t.fillingFactor * cell.Dy()
+		e.Render(dc, cell.Min.X, cell.Min.Y+(cell.Dy()-hFilling)/2, cell.Dx(), hFilling)
 	}
 	return nil
 }
