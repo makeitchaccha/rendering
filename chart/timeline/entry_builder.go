@@ -20,13 +20,12 @@ func (b *EntryBuilder) SetLabelColor(color color.Color) *EntryBuilder {
 	return b
 }
 
-func (b *EntryBuilder) AddSection(start, end float64) *EntryBuilder {
-	b.sections = append(b.sections, section{start, end, ""})
-	return b
-}
+func (b *EntryBuilder) AddSection(start, end float64, opts ...SectionOpt) *EntryBuilder {
+	section := section{start, end, 1, ""}
 
-func (b *EntryBuilder) AddSectionWithLabel(start, end float64, label string) *EntryBuilder {
-	b.sections = append(b.sections, section{start, end, label})
+	section.apply(opts...)
+
+	b.sections = append(b.sections, section)
 	return b
 }
 
