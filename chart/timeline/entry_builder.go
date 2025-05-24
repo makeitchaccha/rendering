@@ -1,12 +1,10 @@
 package timeline
 
-import "image/color"
-
 type EntryBuilder struct {
 	Entry
 }
 
-func NewEntryBuilder(color color.Color) *EntryBuilder {
+func NewEntryBuilder() *EntryBuilder {
 	return &EntryBuilder{Entry: Entry{
 		Series: make([]Series, 0),
 	}}
