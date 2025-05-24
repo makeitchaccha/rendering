@@ -12,8 +12,7 @@ var (
 )
 
 type Timeline struct {
-	fillingFactor float64
-	entries       []Entry
+	entries []Entry
 }
 
 var _ layout.Renderer = Timeline{}.Render
@@ -25,8 +24,9 @@ func (t Timeline) Render(dc *gg.Context, x, y, w, h float64) error {
 	l := len(t.entries)
 	hEntry := h / float64(l)
 	for i, e := range t.entries {
-		yEntry := y + hEntry*float64(i) + (1-t.fillingFactor)*hEntry/2
-		hFilling := t.fillingFactor * hEntry
+		totalFillingFactor := e.TotalFillingFactor()
+		yEntry := y + hEntry*float64(i) + (1-totalFillingFactor)*hEntry/2
+		hFilling := totalFillingFactor * hEntry
 		e.Render(dc, x, yEntry, w, hFilling)
 	}
 	return nil
@@ -46,7 +46,8 @@ func (t Timeline) RenderInGrid(dc *gg.Context, grid layout.Grid) error {
 		if err != nil {
 			return err
 		}
-		hFilling := t.fillingFactor * cell.Dy()
+
+		hFilling := e.TotalFillingFactor() * cell.Dy()
 		e.Render(dc, cell.Min.X, cell.Min.Y+(cell.Dy()-hFilling)/2, cell.Dx(), hFilling)
 	}
 	return nil

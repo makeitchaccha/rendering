@@ -7,14 +7,9 @@ type TimelineBuilder struct {
 func NewTimelineBuilder() *TimelineBuilder {
 	return &TimelineBuilder{
 		Timeline: Timeline{
-			fillingFactor: 0.8,
+			entries: make([]Entry, 0),
 		},
 	}
-}
-
-func (b *TimelineBuilder) SetFillingFactor(f float64) *TimelineBuilder {
-	b.fillingFactor = f
-	return b
 }
 
 func (b *TimelineBuilder) AddEntry(e Entry) *TimelineBuilder {
