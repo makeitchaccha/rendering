@@ -17,7 +17,7 @@ func (e *Entry) TotalFillingFactor() float64 {
 	}
 	fillingFactor := 0.0
 	for _, s := range e.Series {
-		fillingFactor += s.fillingFactor
+		fillingFactor += s.FillingFactor
 	}
 	return fillingFactor
 }
@@ -29,7 +29,7 @@ func (e Entry) Render(dc *gg.Context, x, y, w, h float64) error {
 	yAnchor := y
 	dc.Push()
 	for _, series := range e.Series {
-		r, g, b, _ := series.color.RGBA()
+		r, g, b, _ := series.Color.RGBA()
 		dc.SetColor(color.NRGBA64{
 			R: uint16(r),
 			G: uint16(g),
@@ -37,21 +37,21 @@ func (e Entry) Render(dc *gg.Context, x, y, w, h float64) error {
 			A: uint16(0xffff),
 		})
 
-		for _, section := range series.sections {
+		for _, section := range series.Sections {
 
-			x0 := x + section.start*w
-			x1 := x + section.end*w
+			x0 := x + section.Start*w
+			x1 := x + section.End*w
 			dc.DrawRectangle(x0, yAnchor, x1-x0, h)
 			dc.Fill()
-			if section.label != "" {
+			if section.Label != "" {
 				dc.Push()
-				dc.SetColor(series.labelColor)
-				dc.DrawStringAnchored(section.label, (x0+x1)/2, y+h/2, 0.5, 0.5)
+				dc.SetColor(series.LabelColor)
+				dc.DrawStringAnchored(section.Label, (x0+x1)/2, y+h/2, 0.5, 0.5)
 				dc.Pop()
 			}
 		}
 
-		yAnchor += h * series.fillingFactor
+		yAnchor += h * series.FillingFactor
 
 	}
 
