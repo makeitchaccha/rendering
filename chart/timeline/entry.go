@@ -27,6 +27,7 @@ var _ layout.Renderer = Entry{}.Render
 func (e Entry) Render(dc *gg.Context, x, y, w, h float64) error {
 
 	yAnchor := y
+	totalFillingFactor := e.TotalFillingFactor()
 	dc.Push()
 	for _, series := range e.Series {
 		r, g, b, _ := series.Color.RGBA()
@@ -37,11 +38,12 @@ func (e Entry) Render(dc *gg.Context, x, y, w, h float64) error {
 			A: uint16(0xffff),
 		})
 
+		seriesH := h * series.FillingFactor / totalFillingFactor
 		for _, section := range series.Sections {
 
 			x0 := x + section.Start*w
 			x1 := x + section.End*w
-			dc.DrawRectangle(x0, yAnchor, x1-x0, h)
+			dc.DrawRectangle(x0, yAnchor, x1-x0, seriesH)
 			dc.Fill()
 			if section.Label != "" {
 				dc.Push()
@@ -51,7 +53,7 @@ func (e Entry) Render(dc *gg.Context, x, y, w, h float64) error {
 			}
 		}
 
-		yAnchor += h * series.FillingFactor
+		yAnchor += seriesH
 
 	}
 
